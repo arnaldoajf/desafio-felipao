@@ -2,13 +2,13 @@
 //|                                              WDO_SmartMoney.mq5  |
 //|                        Indicador Smart Money Concepts para WDO   |
 //|                        Imbalance, Order Block, BOS/CHOCH,        |
-//|                        Agressão via Times & Trades / DOM          |
+//|                        Agressao via Times & Trades / DOM          |
 //|                        Timeframe: M5                              |
 //+------------------------------------------------------------------+
 #property copyright   "Arnaldo Felipe"
 #property link        "https://github.com/arnaldoajf"
 #property version     "1.00"
-#property description "Smart Money Concepts: Imbalance, Order Block, BOS/CHOCH + Times & Trades para WDO (M5)"
+#property description "Smart Money Concepts: Imbalance, Order Block, BOS/CHOCH + Times and Trades para WDO (M5)"
 #property indicator_chart_window
 #property indicator_buffers 6
 #property indicator_plots   4
@@ -57,22 +57,22 @@ input group "=== Imbalance (Fair Value Gap) ==="
 input bool   InpShowImbalance   = true;     // Mostrar Imbalance/FVG
 input color  InpImbBullColor    = C'30,80,180';   // Cor Imbalance Bullish
 input color  InpImbBearColor    = C'180,50,50';   // Cor Imbalance Bearish
-input int    InpImbMaxBars      = 50;       // Máx barras para exibir Imbalance
+input int    InpImbMaxBars      = 50;       // Max barras para exibir Imbalance
 input bool   InpImbMitigated    = true;     // Remover quando mitigado
 
 input group "=== Order Block ==="
 input bool   InpShowOB          = true;     // Mostrar Order Block
 input color  InpOBBullColor     = C'20,120,60';   // Cor OB Bullish
 input color  InpOBBearColor     = C'160,40,40';   // Cor OB Bearish
-input int    InpOBMaxBars       = 80;       // Máx barras para exibir OB
+input int    InpOBMaxBars       = 80;       // Max barras para exibir OB
 
-input group "=== Times & Trades (Agressão) ==="
-input bool   InpShowAggression  = true;     // Mostrar Agressão (Times & Trades)
-input int    InpAggPeriod       = 5;        // Período de agregação (barras)
-input color  InpAggBuyColor     = clrDodgerBlue;  // Cor Agressão Compradora
-input color  InpAggSellColor    = clrOrangeRed;   // Cor Agressão Vendedora
-input int    InpAggFontSize     = 8;        // Tamanho da fonte agressão
-input int    InpDeltaThreshold  = 50;       // Limiar mínimo de delta para exibir
+input group "=== Times & Trades (Agressao) ==="
+input bool   InpShowAggression  = true;     // Mostrar Agressao (Times & Trades)
+input int    InpAggPeriod       = 5;        // Periodo de agregacao (barras)
+input color  InpAggBuyColor     = clrDodgerBlue;  // Cor Agressao Compradora
+input color  InpAggSellColor    = clrOrangeRed;   // Cor Agressao Vendedora
+input int    InpAggFontSize     = 8;        // Tamanho da fonte agressao
+input int    InpDeltaThreshold  = 50;       // Limiar minimo de delta para exibir
 
 input group "=== Alertas ==="
 input bool   InpAlertBOS        = true;     // Alerta em BOS
@@ -148,8 +148,8 @@ OrderBlock     g_obs[];
 Imbalance      g_imbs[];
 AggressionData g_agg[];
 ENUM_TREND     g_trend = TREND_NONE;
-int            g_last_sh_idx = -1;   // último swing high index
-int            g_last_sl_idx = -1;   // último swing low index
+int            g_last_sh_idx = -1;   // ultimo swing high index
+int            g_last_sl_idx = -1;   // ultimo swing low index
 double         g_last_sh_price = 0;
 double         g_last_sl_price = 0;
 string         g_prefix = "SMC_";
@@ -233,7 +233,7 @@ int OnCalculate(const int rates_total,
 
    int start = prev_calculated > 0 ? prev_calculated - 1 : InpSwingLen;
 
-   //--- Inicializar buffers na primeira execução
+   //--- Inicializar buffers na primeira execucao
    if(prev_calculated == 0)
    {
       ArrayInitialize(BufBOSBull, EMPTY_VALUE);
@@ -250,7 +250,7 @@ int OnCalculate(const int rates_total,
       //--- 1. Detectar Swing Points
       DetectSwingPoints(i, high, low, time, rates_total);
 
-      //--- 2. Detectar BOS / CHOCH (Order Blocks são criados dentro desta função)
+      //--- 2. Detectar BOS / CHOCH (Order Blocks sao criados dentro desta funcao)
       if(InpShowBOS || InpShowCHOCH || InpShowOB)
          DetectStructureBreak(i, high, low, open, close, time, rates_total);
 
@@ -259,7 +259,7 @@ int OnCalculate(const int rates_total,
          DetectImbalance(i, high, low, open, close, time, rates_total);
    }
 
-   //--- 4. Agressão via Times & Trades (últimos N candles)
+   //--- 4. Agressao via Times & Trades (ultimos N candles)
    if(InpShowAggression && rates_total > 1)
    {
       int agg_start = MathMax(rates_total - InpAggPeriod, 1);
@@ -267,17 +267,16 @@ int OnCalculate(const int rates_total,
          ProcessAggression(a, time, open, high, low, close, volume, rates_total);
    }
 
-   //--- 6. Checar mitigação de Imbalance
+   //--- 6. Checar mitigacao de Imbalance
    if(InpImbMitigated)
       CheckImbalanceMitigation(rates_total - 1, high, low);
 
-   //--- 7. Checar mitigação de Order Blocks
+   //--- 7. Checar mitigacao de Order Blocks
    CheckOBMitigation(rates_total - 1, high, low);
 
    //--- Limpar objetos antigos
    CleanOldObjects(rates_total, time);
 
-   g_prev_calculated = rates_total;
    return(rates_total);
 }
 
@@ -361,19 +360,19 @@ void DetectStructureBreak(int idx, const double &high[], const double &low[],
    if(g_last_sh_idx < 0 || g_last_sl_idx < 0)
       return;
 
-   //--- Verificar rompimento de Swing High (close acima do último SH)
+   //--- Verificar rompimento de Swing High (close acima do ultimo SH)
    if(close[idx] > g_last_sh_price && !IsSwingBroken(g_last_sh_idx, true))
    {
       MarkSwingBroken(g_last_sh_idx, true);
 
       if(g_trend == TREND_BULL || g_trend == TREND_NONE)
       {
-         //--- BOS Bullish (continuação de alta)
+         //--- BOS Bullish (continuacao de alta)
          if(InpShowBOS)
          {
             BufBOSBull[idx] = low[idx] - _Point * 50;
             DrawStructureLine(time[g_last_sh_idx], g_last_sh_price, time[idx], g_last_sh_price,
-                              InpBOSBullColor, "BOS↑", idx);
+                              InpBOSBullColor, "BOS^", idx);
          }
          g_trend = TREND_BULL;
 
@@ -382,37 +381,37 @@ void DetectStructureBreak(int idx, const double &high[], const double &low[],
       }
       else
       {
-         //--- CHOCH Bullish (mudança de bearish para bullish)
+         //--- CHOCH Bullish (mudanca de bearish para bullish)
          if(InpShowCHOCH)
          {
             BufCHOCHBull[idx] = low[idx] - _Point * 50;
             DrawStructureLine(time[g_last_sh_idx], g_last_sh_price, time[idx], g_last_sh_price,
-                              InpCHOCHBullColor, "CHOCH↑", idx);
+                              InpCHOCHBullColor, "CHOCH^", idx);
          }
          g_trend = TREND_BULL;
 
          if(InpAlertCHOCH)
-            SendAlert("CHOCH Bullish detectado em " + _Symbol + " M5! Possível reversão!", idx, time);
+            SendAlert("CHOCH Bullish detectado em " + _Symbol + " M5! Possivel reversao!", idx, time);
       }
 
-      //--- Criar Order Block no último candle contrário (bearish) antes do rompimento
+      //--- Criar Order Block no ultimo candle contrario (bearish) antes do rompimento
       if(InpShowOB)
          FindOrderBlock(idx, high, low, open, close, time, true, rates_total);
    }
 
-   //--- Verificar rompimento de Swing Low (close abaixo do último SL)
+   //--- Verificar rompimento de Swing Low (close abaixo do ultimo SL)
    if(close[idx] < g_last_sl_price && !IsSwingBroken(g_last_sl_idx, false))
    {
       MarkSwingBroken(g_last_sl_idx, false);
 
       if(g_trend == TREND_BEAR || g_trend == TREND_NONE)
       {
-         //--- BOS Bearish (continuação de baixa)
+         //--- BOS Bearish (continuacao de baixa)
          if(InpShowBOS)
          {
             BufBOSBear[idx] = high[idx] + _Point * 50;
             DrawStructureLine(time[g_last_sl_idx], g_last_sl_price, time[idx], g_last_sl_price,
-                              InpBOSBearColor, "BOS↓", idx);
+                              InpBOSBearColor, "BOSv", idx);
          }
          g_trend = TREND_BEAR;
 
@@ -421,27 +420,27 @@ void DetectStructureBreak(int idx, const double &high[], const double &low[],
       }
       else
       {
-         //--- CHOCH Bearish (mudança de bullish para bearish)
+         //--- CHOCH Bearish (mudanca de bullish para bearish)
          if(InpShowCHOCH)
          {
             BufCHOCHBear[idx] = high[idx] + _Point * 50;
             DrawStructureLine(time[g_last_sl_idx], g_last_sl_price, time[idx], g_last_sl_price,
-                              InpCHOCHBearColor, "CHOCH↓", idx);
+                              InpCHOCHBearColor, "CHOCHv", idx);
          }
          g_trend = TREND_BEAR;
 
          if(InpAlertCHOCH)
-            SendAlert("CHOCH Bearish detectado em " + _Symbol + " M5! Possível reversão!", idx, time);
+            SendAlert("CHOCH Bearish detectado em " + _Symbol + " M5! Possivel reversao!", idx, time);
       }
 
-      //--- Criar Order Block no último candle contrário (bullish) antes do rompimento
+      //--- Criar Order Block no ultimo candle contrario (bullish) antes do rompimento
       if(InpShowOB)
          FindOrderBlock(idx, high, low, open, close, time, false, rates_total);
    }
 }
 
 //+------------------------------------------------------------------+
-//| Verificar se swing point já foi rompido                           |
+//| Verificar se swing point ja foi rompido                           |
 //+------------------------------------------------------------------+
 bool IsSwingBroken(int swing_idx, bool is_high)
 {
@@ -489,7 +488,7 @@ void DrawStructureLine(datetime t1, double p1, datetime t2, double p2,
    //--- Label
    string lbl_name = g_prefix + "LBL_" + IntegerToString(g_obj_counter++);
    datetime mid_t = t1 + (t2 - t1) / 2;
-   double offset = (StringFind(label, "↑") >= 0) ? _Point * 30 : -_Point * 30;
+   double offset = (StringFind(label, "^") >= 0) ? _Point * 30 : -_Point * 30;
 
    if(ObjectCreate(0, lbl_name, OBJ_TEXT, 0, mid_t, p1 + offset))
    {
@@ -553,7 +552,7 @@ void DetectImbalance(int idx, const double &high[], const double &low[],
 }
 
 //+------------------------------------------------------------------+
-//| Desenhar retângulo de Imbalance                                   |
+//| Desenhar retangulo de Imbalance                                   |
 //+------------------------------------------------------------------+
 void DrawImbalanceRect(Imbalance &imb, const datetime &time[], int rates_total)
 {
@@ -579,7 +578,7 @@ void DrawImbalanceRect(Imbalance &imb, const datetime &time[], int rates_total)
    string lbl = g_prefix + "IMBLBL_" + IntegerToString(g_obj_counter++);
    if(ObjectCreate(0, lbl, OBJ_TEXT, 0, imb.time_start, (imb.upper + imb.lower) / 2.0))
    {
-      ObjectSetString(0, lbl, OBJPROP_TEXT, imb.is_bullish ? "FVG↑" : "FVG↓");
+      ObjectSetString(0, lbl, OBJPROP_TEXT, imb.is_bullish ? "FVG^" : "FVGv");
       ObjectSetInteger(0, lbl, OBJPROP_COLOR, imb.is_bullish ? InpImbBullColor : InpImbBearColor);
       ObjectSetInteger(0, lbl, OBJPROP_FONTSIZE, 7);
       ObjectSetInteger(0, lbl, OBJPROP_SELECTABLE, false);
@@ -587,7 +586,7 @@ void DrawImbalanceRect(Imbalance &imb, const datetime &time[], int rates_total)
 }
 
 //+------------------------------------------------------------------+
-//| Checar mitigação de Imbalance                                     |
+//| Checar mitigacao de Imbalance                                     |
 //+------------------------------------------------------------------+
 void CheckImbalanceMitigation(int idx, const double &high[], const double &low[])
 {
@@ -600,13 +599,13 @@ void CheckImbalanceMitigation(int idx, const double &high[], const double &low[]
 
       if(g_imbs[i].is_bullish)
       {
-         //--- Mitigado quando preço volta e fecha abaixo do nível inferior
+         //--- Mitigado quando preco volta e fecha abaixo do nivel inferior
          if(low[idx] <= g_imbs[i].lower)
             mitigated = true;
       }
       else
       {
-         //--- Mitigado quando preço volta e fecha acima do nível superior
+         //--- Mitigado quando preco volta e fecha acima do nivel superior
          if(high[idx] >= g_imbs[i].upper)
             mitigated = true;
       }
@@ -620,13 +619,13 @@ void CheckImbalanceMitigation(int idx, const double &high[], const double &low[]
 }
 
 //+------------------------------------------------------------------+
-//| Encontrar Order Block (último candle contrário antes do BOS)     |
+//| Encontrar Order Block (ultimo candle contrario antes do BOS)     |
 //+------------------------------------------------------------------+
 void FindOrderBlock(int bos_idx, const double &high[], const double &low[],
                     const double &open[], const double &close[],
                     const datetime &time[], bool is_bullish_bos, int rates_total)
 {
-   //--- Procurar o último candle contrário antes do rompimento
+   //--- Procurar o ultimo candle contrario antes do rompimento
    for(int i = bos_idx - 1; i >= MathMax(0, bos_idx - 20); i--)
    {
       bool is_bearish_candle = (close[i] < open[i]);
@@ -634,13 +633,13 @@ void FindOrderBlock(int bos_idx, const double &high[], const double &low[],
 
       if(is_bullish_bos && is_bearish_candle)
       {
-         //--- Order Block Bullish = último candle bearish antes do BOS bullish
+         //--- Order Block Bullish = ultimo candle bearish antes do BOS bullish
          CreateOrderBlock(i, high, low, open, close, time, true, rates_total);
          return;
       }
       else if(!is_bullish_bos && is_bullish_candle)
       {
-         //--- Order Block Bearish = último candle bullish antes do BOS bearish
+         //--- Order Block Bearish = ultimo candle bullish antes do BOS bearish
          CreateOrderBlock(i, high, low, open, close, time, false, rates_total);
          return;
       }
@@ -665,13 +664,13 @@ void CreateOrderBlock(int idx, const double &high[], const double &low[],
    ob.active     = true;
    ob.obj_name   = g_prefix + "OB_" + IntegerToString(g_obj_counter++);
 
-   //--- Extensão do retângulo
+   //--- Extensao do retangulo
    datetime t_end = (idx + InpOBMaxBars < rates_total)
                     ? time[idx + InpOBMaxBars]
                     : time[rates_total - 1] + PeriodSeconds() * 20;
    ob.time_end = t_end;
 
-   //--- Desenhar retângulo
+   //--- Desenhar retangulo
    if(ObjectCreate(0, ob.obj_name, OBJ_RECTANGLE, 0,
                    ob.time_start, ob.high, t_end, ob.low))
    {
@@ -690,7 +689,7 @@ void CreateOrderBlock(int idx, const double &high[], const double &low[],
    string lbl = g_prefix + "OBLBL_" + IntegerToString(g_obj_counter++);
    if(ObjectCreate(0, lbl, OBJ_TEXT, 0, ob.time_start, (ob.high + ob.low) / 2.0))
    {
-      ObjectSetString(0, lbl, OBJPROP_TEXT, is_bullish ? "OB↑" : "OB↓");
+      ObjectSetString(0, lbl, OBJPROP_TEXT, is_bullish ? "OB^" : "OBv");
       ObjectSetInteger(0, lbl, OBJPROP_COLOR, is_bullish ? InpOBBullColor : InpOBBearColor);
       ObjectSetInteger(0, lbl, OBJPROP_FONTSIZE, 8);
       ObjectSetString(0, lbl, OBJPROP_FONT, "Arial Bold");
@@ -714,7 +713,7 @@ void CreateOrderBlock(int idx, const double &high[], const double &low[],
 }
 
 //+------------------------------------------------------------------+
-//| Checar mitigação de Order Block                                   |
+//| Checar mitigacao de Order Block                                   |
 //+------------------------------------------------------------------+
 void CheckOBMitigation(int idx, const double &high[], const double &low[])
 {
@@ -727,13 +726,13 @@ void CheckOBMitigation(int idx, const double &high[], const double &low[])
 
       if(g_obs[i].is_bullish)
       {
-         //--- OB bullish mitigado quando preço toca a zona e sobe (preço atingiu low do OB)
+         //--- OB bullish mitigado quando preco toca a zona e sobe (preco atingiu low do OB)
          if(low[idx] <= g_obs[i].low)
             mitigated = true;
       }
       else
       {
-         //--- OB bearish mitigado quando preço toca a zona e desce (preço atingiu high do OB)
+         //--- OB bearish mitigado quando preco toca a zona e desce (preco atingiu high do OB)
          if(high[idx] >= g_obs[i].high)
             mitigated = true;
       }
@@ -741,7 +740,7 @@ void CheckOBMitigation(int idx, const double &high[], const double &low[])
       if(mitigated)
       {
          g_obs[i].active = false;
-         //--- Alterar estilo visual para indicar mitigação
+         //--- Alterar estilo visual para indicar mitigacao
          ObjectSetInteger(0, g_obs[i].obj_name, OBJPROP_STYLE, STYLE_DOT);
          color mitClr = g_obs[i].is_bullish ? C'80,80,80' : C'80,80,80';
          ObjectSetInteger(0, g_obs[i].obj_name, OBJPROP_COLOR, mitClr);
@@ -750,7 +749,7 @@ void CheckOBMitigation(int idx, const double &high[], const double &low[])
 }
 
 //+------------------------------------------------------------------+
-//| Processar Agressão via Times & Trades (Tick Data)                |
+//| Processar Agressao via Times & Trades (Tick Data)                |
 //+------------------------------------------------------------------+
 void ProcessAggression(int idx, const datetime &time[], const double &open[],
                        const double &high[], const double &low[],
@@ -782,14 +781,14 @@ void ProcessAggression(int idx, const datetime &time[], const double &open[],
          sell_vol += (long)ticks[t].volume;
       else
       {
-         //--- Fallback: classificar pelo último preço vs bid/ask
+         //--- Fallback: classificar pelo ultimo preco vs bid/ask
          if(ticks[t].last >= ticks[t].ask)
             buy_vol += (long)ticks[t].volume;
          else if(ticks[t].last <= ticks[t].bid)
             sell_vol += (long)ticks[t].volume;
          else
          {
-            //--- Se preço está entre bid e ask, dividir proporcionalmente
+            //--- Se preco esta entre bid e ask, dividir proporcionalmente
             if(ticks[t].ask > ticks[t].bid)
             {
                double ratio = (ticks[t].last - ticks[t].bid) / (ticks[t].ask - ticks[t].bid);
@@ -802,11 +801,11 @@ void ProcessAggression(int idx, const datetime &time[], const double &open[],
 
    long delta = buy_vol - sell_vol;
 
-   //--- Só mostrar se delta supera o limiar
+   //--- So mostrar se delta supera o limiar
    if(MathAbs(delta) < InpDeltaThreshold)
       return;
 
-   //--- Criar label de agressão no gráfico
+   //--- Criar label de agressao no grafico
    string agg_name = g_prefix + "AGG_" + IntegerToString(idx);
 
    //--- Remover label anterior do mesmo candle se existir
@@ -818,21 +817,21 @@ void ProcessAggression(int idx, const datetime &time[], const double &open[],
 
    if(delta > 0)
    {
-      //--- Agressão compradora
+      //--- Agressao compradora
       y_pos    = low[idx] - _Point * 80;
       agg_clr  = InpAggBuyColor;
       agg_text = "A+" + IntegerToString(buy_vol) +
                  "\nP-" + IntegerToString(sell_vol) +
-                 "\nΔ+" + IntegerToString(delta);
+                 "\nD+" + IntegerToString(delta);
    }
    else
    {
-      //--- Agressão vendedora
+      //--- Agressao vendedora
       y_pos    = high[idx] + _Point * 80;
       agg_clr  = InpAggSellColor;
       agg_text = "A-" + IntegerToString(sell_vol) +
                  "\nP+" + IntegerToString(buy_vol) +
-                 "\nΔ" + IntegerToString(delta);
+                 "\nD" + IntegerToString(delta);
    }
 
    if(ObjectCreate(0, agg_name, OBJ_TEXT, 0, time[idx], y_pos))
@@ -844,8 +843,8 @@ void ProcessAggression(int idx, const datetime &time[], const double &open[],
       ObjectSetInteger(0, agg_name, OBJPROP_ANCHOR, delta > 0 ? ANCHOR_UPPER : ANCHOR_LOWER);
       ObjectSetInteger(0, agg_name, OBJPROP_SELECTABLE, false);
       ObjectSetString(0, agg_name, OBJPROP_TOOLTIP,
-                      "Agressão Compradora: " + IntegerToString(buy_vol) +
-                      "\nAgressão Vendedora: " + IntegerToString(sell_vol) +
+                      "Agressao Compradora: " + IntegerToString(buy_vol) +
+                      "\nAgressao Vendedora: " + IntegerToString(sell_vol) +
                       "\nDelta: " + IntegerToString(delta) +
                       "\nTotal Ticks: " + IntegerToString(copied));
    }
@@ -914,7 +913,7 @@ void SendAlert(string msg, int idx, const datetime &time[])
 }
 
 //+------------------------------------------------------------------+
-//| Limpar objetos antigos fora da janela visível                     |
+//| Limpar objetos antigos fora da janela visivel                     |
 //+------------------------------------------------------------------+
 void CleanOldObjects(int rates_total, const datetime &time[])
 {
