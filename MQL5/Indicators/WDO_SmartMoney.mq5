@@ -226,7 +226,7 @@ int OnCalculate(const int rates_total,
                 const double &close[],
                 const long &tick_volume[],
                 const long &volume[],
-                const long &spread[])
+                const int &spread[])
 {
    if(rates_total < InpSwingLen * 2 + 1)
       return(0);
