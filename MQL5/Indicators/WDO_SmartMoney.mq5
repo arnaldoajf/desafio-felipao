@@ -1,4 +1,4 @@
-//+------------------------------------------------------------------+
+﻿//+------------------------------------------------------------------+
 //|                                              WDO_SmartMoney.mq5  |
 //|                        Indicador Smart Money Concepts para WDO   |
 //|                        Imbalance, Order Block, BOS/CHOCH,        |
@@ -44,7 +44,7 @@
 //+------------------------------------------------------------------+
 //| Inputs                                                            |
 //+------------------------------------------------------------------+
-input group "=== Estrutura de Mercado (BOS/CHOCH) ==="
+//--- === Estrutura de Mercado (BOS/CHOCH) ===
 input int    InpSwingLen        = 5;        // Lookback para Swing High/Low
 input bool   InpShowBOS         = true;     // Mostrar BOS
 input bool   InpShowCHOCH       = true;     // Mostrar CHOCH
@@ -53,20 +53,20 @@ input color  InpBOSBearColor    = clrOrangeRed;   // Cor BOS Bearish
 input color  InpCHOCHBullColor  = clrLime;        // Cor CHOCH Bullish
 input color  InpCHOCHBearColor  = clrMagenta;     // Cor CHOCH Bearish
 
-input group "=== Imbalance (Fair Value Gap) ==="
+//--- === Imbalance (Fair Value Gap) ===
 input bool   InpShowImbalance   = true;     // Mostrar Imbalance/FVG
 input color  InpImbBullColor    = C'30,80,180';   // Cor Imbalance Bullish
 input color  InpImbBearColor    = C'180,50,50';   // Cor Imbalance Bearish
 input int    InpImbMaxBars      = 50;       // Max barras para exibir Imbalance
 input bool   InpImbMitigated    = true;     // Remover quando mitigado
 
-input group "=== Order Block ==="
+//--- === Order Block ===
 input bool   InpShowOB          = true;     // Mostrar Order Block
 input color  InpOBBullColor     = C'20,120,60';   // Cor OB Bullish
 input color  InpOBBearColor     = C'160,40,40';   // Cor OB Bearish
 input int    InpOBMaxBars       = 80;       // Max barras para exibir OB
 
-input group "=== Times & Trades (Agressao) ==="
+//--- === Times & Trades (Agressao) ===
 input bool   InpShowAggression  = true;     // Mostrar Agressao (Times & Trades)
 input int    InpAggPeriod       = 5;        // Periodo de agregacao (barras)
 input color  InpAggBuyColor     = clrDodgerBlue;  // Cor Agressao Compradora
@@ -74,7 +74,7 @@ input color  InpAggSellColor    = clrOrangeRed;   // Cor Agressao Vendedora
 input int    InpAggFontSize     = 8;        // Tamanho da fonte agressao
 input int    InpDeltaThreshold  = 50;       // Limiar minimo de delta para exibir
 
-input group "=== Alertas ==="
+//--- === Alertas ===
 input bool   InpAlertBOS        = true;     // Alerta em BOS
 input bool   InpAlertCHOCH      = true;     // Alerta em CHOCH
 input bool   InpAlertOB         = true;     // Alerta em Order Block
