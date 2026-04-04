@@ -152,7 +152,6 @@ int            g_last_sh_idx = -1;   // último swing high index
 int            g_last_sl_idx = -1;   // último swing low index
 double         g_last_sh_price = 0;
 double         g_last_sl_price = 0;
-int            g_prev_calculated = 0;
 string         g_prefix = "SMC_";
 int            g_obj_counter = 0;
 
@@ -260,9 +259,13 @@ int OnCalculate(const int rates_total,
          DetectImbalance(i, high, low, open, close, time, rates_total);
    }
 
-   //--- 5. Agressão via Times & Trades (último candle)
+   //--- 4. Agressão via Times & Trades (últimos N candles)
    if(InpShowAggression && rates_total > 1)
-      ProcessAggression(rates_total - 1, time, open, high, low, close, volume, rates_total);
+   {
+      int agg_start = MathMax(rates_total - InpAggPeriod, 1);
+      for(int a = agg_start; a < rates_total; a++)
+         ProcessAggression(a, time, open, high, low, close, volume, rates_total);
+   }
 
    //--- 6. Checar mitigação de Imbalance
    if(InpImbMitigated)
@@ -875,7 +878,6 @@ void OnBookEvent(const string &symbol)
    string dom_name = g_prefix + "DOM_DEPTH";
    ObjectDelete(0, dom_name);
 
-   double mid_price = (SymbolInfoDouble(_Symbol, SYMBOL_BID) + SymbolInfoDouble(_Symbol, SYMBOL_ASK)) / 2.0;
    string dom_text = "DOM | Bid:" + IntegerToString(bid_depth) +
                      " | Ask:" + IntegerToString(ask_depth);
 
