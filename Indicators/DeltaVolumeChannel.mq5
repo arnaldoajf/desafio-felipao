@@ -3,12 +3,13 @@
 //|              Canal de Delta e Volume Real para WDO B3             |
 //+------------------------------------------------------------------+
 #property copyright   "Delta Volume Channel - WDO B3"
-#property version     "1.10"
+#property version     "1.20"
 #property description "Canal dinamico baseado em Delta (compra - venda) e Volume Real."
 #property description "Desenvolvido para WDO e contratos futuros da B3."
 #property description " "
 #property description "O delta desloca o canal na direcao da pressao dominante."
 #property description "O volume real ajusta a largura do canal dinamicamente."
+#property description "Exibe apenas no dia atual para evitar sobrecarga."
 #property indicator_chart_window
 #property indicator_buffers 5
 #property indicator_plots   2
@@ -227,14 +228,41 @@ int OnCalculate(const int rates_total,
    if(CopyBuffer(g_handleATR, 0, 0, rates_total, atr_vals) <= 0)
       return 0;
 
-//--- Determinar ponto de inicio do calculo
-   int inicio;
-   if(prev_calculated > 0)
-      inicio = prev_calculated - 1;
-   else
-      inicio = min_bars;
+//--- Determinar inicio do dia atual (00:00 do dia)
+   MqlDateTime dt_now;
+   TimeCurrent(dt_now);
+   dt_now.hour = 0;
+   dt_now.min  = 0;
+   dt_now.sec  = 0;
+   datetime inicio_dia = StructToTime(dt_now);
 
-//--- Loop principal de calculo
+//--- Encontrar o indice da primeira barra do dia atual
+   int idx_inicio_dia = rates_total - 1;
+   for(int k = rates_total - 1; k >= 0; k--)
+     {
+      if(time[k] < inicio_dia)
+        {
+         idx_inicio_dia = k + 1;
+         break;
+        }
+      if(k == 0)
+         idx_inicio_dia = 0;
+     }
+
+//--- Garantir minimo de barras para calculo
+   int inicio = MathMax(idx_inicio_dia, min_bars);
+
+//--- Limpar barras anteriores ao dia atual (remover desenho de dias passados)
+   if(prev_calculated == 0)
+     {
+      for(int k = 0; k < inicio; k++)
+        {
+         BufferSuperior[k] = EMPTY_VALUE;
+         BufferInferior[k] = EMPTY_VALUE;
+        }
+     }
+
+//--- Loop principal de calculo (apenas dia atual)
    for(int i = inicio; i < rates_total; i++)
      {
       //=== 1. CALCULAR DELTA DA BARRA ===
