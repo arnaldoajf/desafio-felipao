@@ -3,15 +3,15 @@
 //|              Canal de Delta e Volume Real para WDO B3             |
 //+------------------------------------------------------------------+
 #property copyright   "Delta Volume Channel - WDO B3"
-#property version     "1.00"
+#property version     "1.10"
 #property description "Canal dinamico baseado em Delta (compra - venda) e Volume Real."
 #property description "Desenvolvido para WDO e contratos futuros da B3."
 #property description " "
 #property description "O delta desloca o canal na direcao da pressao dominante."
 #property description "O volume real ajusta a largura do canal dinamicamente."
 #property indicator_chart_window
-#property indicator_buffers 7
-#property indicator_plots   3
+#property indicator_buffers 5
+#property indicator_plots   2
 
 //--- Plot 0: Banda Superior
 #property indicator_label1  "Banda Superior"
@@ -20,19 +20,12 @@
 #property indicator_style1  STYLE_SOLID
 #property indicator_width1  2
 
-//--- Plot 1: Linha Central (colorida pelo delta)
-#property indicator_label2  "Linha Central"
-#property indicator_type2   DRAW_COLOR_LINE
-#property indicator_color2  clrLime,clrRed,clrGold
+//--- Plot 1: Banda Inferior
+#property indicator_label2  "Banda Inferior"
+#property indicator_type2   DRAW_LINE
+#property indicator_color2  clrOrangeRed
 #property indicator_style2  STYLE_SOLID
 #property indicator_width2  2
-
-//--- Plot 2: Banda Inferior
-#property indicator_label3  "Banda Inferior"
-#property indicator_type3   DRAW_LINE
-#property indicator_color3  clrOrangeRed
-#property indicator_style3  STYLE_SOLID
-#property indicator_width3  2
 
 //+------------------------------------------------------------------+
 //| Parametros de Entrada                                             |
@@ -55,8 +48,6 @@ input double          InpVolMax        = 3.0;      // Ratio Volume Maximo
 //| Buffers do indicador                                              |
 //+------------------------------------------------------------------+
 double BufferSuperior[];     // Banda superior
-double BufferCentral[];      // Linha central
-double BufferCentralCor[];   // Indice de cor da linha central
 double BufferInferior[];     // Banda inferior
 double BufferDelta[];        // Delta por barra (calculo)
 double BufferDeltaCum[];     // Delta acumulado (calculo)
@@ -89,17 +80,14 @@ int OnInit()
      }
 
 //--- Configurar buffers (ordem: plots primeiro, depois calculos)
-   SetIndexBuffer(0, BufferSuperior,   INDICATOR_DATA);
-   SetIndexBuffer(1, BufferCentral,    INDICATOR_DATA);
-   SetIndexBuffer(2, BufferCentralCor, INDICATOR_COLOR_INDEX);
-   SetIndexBuffer(3, BufferInferior,   INDICATOR_DATA);
-   SetIndexBuffer(4, BufferDelta,      INDICATOR_CALCULATIONS);
-   SetIndexBuffer(5, BufferDeltaCum,   INDICATOR_CALCULATIONS);
-   SetIndexBuffer(6, BufferVolRatio,   INDICATOR_CALCULATIONS);
+   SetIndexBuffer(0, BufferSuperior, INDICATOR_DATA);
+   SetIndexBuffer(1, BufferInferior, INDICATOR_DATA);
+   SetIndexBuffer(2, BufferDelta,    INDICATOR_CALCULATIONS);
+   SetIndexBuffer(3, BufferDeltaCum, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(4, BufferVolRatio, INDICATOR_CALCULATIONS);
 
 //--- Inicializar buffers com EMPTY_VALUE
    ArrayInitialize(BufferSuperior, EMPTY_VALUE);
-   ArrayInitialize(BufferCentral,  EMPTY_VALUE);
    ArrayInitialize(BufferInferior, EMPTY_VALUE);
    ArrayInitialize(BufferDelta,    0.0);
    ArrayInitialize(BufferDeltaCum, 0.0);
@@ -128,7 +116,6 @@ int OnInit()
    int min_bars = MathMax(InpPeriodo, InpPeriodoATR);
    PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, min_bars);
    PlotIndexSetInteger(1, PLOT_DRAW_BEGIN, min_bars);
-   PlotIndexSetInteger(2, PLOT_DRAW_BEGIN, min_bars);
 
    Print("DeltaVolumeChannel inicializado com sucesso - ",
          "Periodo=", InpPeriodo,
@@ -305,18 +292,10 @@ int OnCalculate(const int rates_total,
       //--- sqrt(periodo) normaliza o efeito para diferentes periodos
       double deslocamento = delta_norm * atr * InpFatorDelta * MathSqrt((double)InpPeriodo);
 
-      //--- Calcular as tres linhas do canal
-      BufferCentral[i]  = ma + deslocamento;
-      BufferSuperior[i] = BufferCentral[i] + largura;
-      BufferInferior[i] = BufferCentral[i] - largura;
-
-      //=== 6. COR DA LINHA CENTRAL BASEADA NO DELTA ===
-      if(delta_acum > 0)
-         BufferCentralCor[i] = 0;   // Verde (compra dominante)
-      else if(delta_acum < 0)
-         BufferCentralCor[i] = 1;   // Vermelho (venda dominante)
-      else
-         BufferCentralCor[i] = 2;   // Dourado (neutro)
+      //--- Calcular as bandas superior e inferior
+      double central      = ma + deslocamento;
+      BufferSuperior[i]   = central + largura;
+      BufferInferior[i]   = central - largura;
      }
 
    return rates_total;
