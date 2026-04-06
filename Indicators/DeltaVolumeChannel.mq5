@@ -63,8 +63,8 @@ double BufferDeltaCum[];     // Delta acumulado (calculo)
 double BufferVolRatio[];     // Ratio de volume (calculo)
 
 //--- Handles de indicadores auxiliares
-int g_handleMA;
-int g_handleATR;
+int g_handleMA  = INVALID_HANDLE;
+int g_handleATR = INVALID_HANDLE;
 
 //+------------------------------------------------------------------+
 //| Inicializacao do indicador                                        |
