@@ -3,7 +3,7 @@
 //|              Canal de Delta e Volume Real para WDO B3             |
 //+------------------------------------------------------------------+
 #property copyright   "Delta Volume Channel - WDO B3"
-#property version     "1.30"
+#property version     "1.40"
 #property description "Canal dinamico baseado em Delta (compra - venda) e Volume Real."
 #property description "Desenvolvido para WDO e contratos futuros da B3."
 #property description " "
@@ -14,19 +14,13 @@
 #property indicator_buffers 5
 #property indicator_plots   2
 
-//--- Plot 0: Banda Superior
+//--- Plot 0: Banda Superior (DRAW_NONE - desenho via objetos graficos)
 #property indicator_label1  "Banda Superior"
-#property indicator_type1   DRAW_STEPS
-#property indicator_color1  clrDodgerBlue
-#property indicator_style1  STYLE_SOLID
-#property indicator_width1  2
+#property indicator_type1   DRAW_NONE
 
-//--- Plot 1: Banda Inferior
+//--- Plot 1: Banda Inferior (DRAW_NONE - desenho via objetos graficos)
 #property indicator_label2  "Banda Inferior"
-#property indicator_type2   DRAW_STEPS
-#property indicator_color2  clrOrangeRed
-#property indicator_style2  STYLE_SOLID
-#property indicator_width2  2
+#property indicator_type2   DRAW_NONE
 
 //+------------------------------------------------------------------+
 //| Parametros de Entrada                                             |
@@ -57,6 +51,9 @@ double BufferVolRatio[];     // Ratio de volume (calculo)
 //--- Handles de indicadores auxiliares
 int g_handleMA  = INVALID_HANDLE;
 int g_handleATR = INVALID_HANDLE;
+
+//--- Prefixo unico para objetos graficos deste indicador
+string g_objPrefix;
 
 //+------------------------------------------------------------------+
 //| Inicializacao do indicador                                        |
@@ -118,6 +115,9 @@ int OnInit()
    PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, min_bars);
    PlotIndexSetInteger(1, PLOT_DRAW_BEGIN, min_bars);
 
+//--- Criar prefixo unico para objetos graficos
+   g_objPrefix = "DVC_" + IntegerToString(ChartID()) + "_";
+
    Print("DeltaVolumeChannel inicializado com sucesso - ",
          "Periodo=", InpPeriodo,
          " ATR=", InpPeriodoATR,
@@ -133,6 +133,10 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
+//--- Remover todos os objetos graficos do indicador
+   ObjectsDeleteAll(0, g_objPrefix);
+   ChartRedraw(0);
+
    if(g_handleMA  != INVALID_HANDLE)
       IndicatorRelease(g_handleMA);
    if(g_handleATR != INVALID_HANDLE)
@@ -324,8 +328,53 @@ int OnCalculate(const int rates_total,
       double central      = ma + deslocamento;
       BufferSuperior[i]   = central + largura;
       BufferInferior[i]   = central - largura;
+
+      //=== 6. DESENHAR SEGMENTOS HORIZONTAIS (ESCADA) ===
+      datetime t_start = time[i];
+      datetime t_end   = (i < rates_total - 1) ? time[i + 1] : time[i] + PeriodSeconds();
+
+      //--- Segmento horizontal da banda superior
+      DesenharSegmento(g_objPrefix + "U_" + IntegerToString(i),
+                       t_start, t_end, BufferSuperior[i],
+                       clrDodgerBlue, 2);
+
+      //--- Segmento horizontal da banda inferior
+      DesenharSegmento(g_objPrefix + "L_" + IntegerToString(i),
+                       t_start, t_end, BufferInferior[i],
+                       clrOrangeRed, 2);
      }
 
+   ChartRedraw(0);
    return rates_total;
+  }
+
+//+------------------------------------------------------------------+
+//| Cria ou atualiza um segmento horizontal (degrau da escada)       |
+//+------------------------------------------------------------------+
+void DesenharSegmento(const string nome,
+                      const datetime t_start,
+                      const datetime t_end,
+                      const double   preco,
+                      const color    cor,
+                      const int      largura)
+  {
+   if(ObjectFind(0, nome) < 0)
+     {
+      ObjectCreate(0, nome, OBJ_TREND, 0,
+                   t_start, preco, t_end, preco);
+      ObjectSetInteger(0, nome, OBJPROP_RAY_RIGHT, false);
+      ObjectSetInteger(0, nome, OBJPROP_RAY_LEFT,  false);
+      ObjectSetInteger(0, nome, OBJPROP_SELECTABLE, false);
+      ObjectSetInteger(0, nome, OBJPROP_HIDDEN, true);
+      ObjectSetInteger(0, nome, OBJPROP_BACK, false);
+     }
+
+   ObjectSetInteger(0, nome, OBJPROP_COLOR, cor);
+   ObjectSetInteger(0, nome, OBJPROP_WIDTH, largura);
+   ObjectSetInteger(0, nome, OBJPROP_STYLE, STYLE_SOLID);
+   ObjectSetInteger(0, nome, OBJPROP_TIME,  0, t_start);
+   ObjectSetInteger(0, nome, OBJPROP_TIME,  1, t_end);
+   ObjectSetDouble(0, nome,  OBJPROP_PRICE, 0, preco);
+   ObjectSetDouble(0, nome,  OBJPROP_PRICE, 1, preco);
   }
 //+------------------------------------------------------------------+
