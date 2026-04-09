@@ -428,7 +428,7 @@ int OnCalculate(const int rates_total,
         }
 
       //=== 2. SUAVIZAR DELTA (EMA opcional) ===
-      if(InpSuavizDelta <= 1 || i == 0)
+      if(InpSuavizDelta <= 1 || i == calc_start)
         {
          BufferDeltaSmooth[i] = BufferDelta[i];
         }
